@@ -1,15 +1,20 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { RegisterUseCase } from './register'
 import { compare } from 'bcryptjs'
 import { InMemoryUsersRepository } from '@/repositories/in-memory/in-memory-users-repository'
 import { UserAlreadyExistsError } from './errors/user-already-exists-erro'
 
-describe('Register user case ', () => {
-  it('should be able to register', async () => {
-    const userRepository = new InMemoryUsersRepository()
-    const registerUseCase = new RegisterUseCase(userRepository)
+let userRepository: InMemoryUsersRepository
+let sut: RegisterUseCase
 
-    const { user } = await registerUseCase.execute({
+describe('Register user case ', () => {
+  beforeEach(() => {
+    userRepository = new InMemoryUsersRepository()
+    sut = new RegisterUseCase(userRepository)
+  })
+
+  it('should be able to register', async () => {
+    const { user } = await sut.execute({
       email: 'johndoe@gmail.com',
       name: 'john doe',
       password: '1234567',
@@ -19,10 +24,7 @@ describe('Register user case ', () => {
   })
 
   it('should hash user password upon registration', async () => {
-    const userRepository = new InMemoryUsersRepository()
-    const registerUseCase = new RegisterUseCase(userRepository)
-
-    const { user } = await registerUseCase.execute({
+    const { user } = await sut.execute({
       email: 'johndoe@gmail.com',
       name: 'john doe',
       password: '1234567',
@@ -37,19 +39,16 @@ describe('Register user case ', () => {
   })
 
   it('should not be able to register with same email twice', async () => {
-    const userRepository = new InMemoryUsersRepository()
-    const registerUseCase = new RegisterUseCase(userRepository)
-
     const email = 'johndoe@gmail.com'
 
-    await registerUseCase.execute({
+    await sut.execute({
       email,
       name: 'john doe',
       password: '1234567',
     })
 
     await expect(() => {
-      return registerUseCase.execute({
+      return sut.execute({
         email,
         name: 'john doe',
         password: '1234567',
